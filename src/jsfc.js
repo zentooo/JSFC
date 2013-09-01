@@ -1,14 +1,17 @@
 (function(global) {
     "use strict";
 
+    var urlParser = document.createElement("a");
+    var patternCache = {};
+
     var JSFC = {
         environment: "draft4",
         targetKeywords: [
             "required", "pattern",
             "max", "min", "maxlength"
-        ],
-        _references: {},
+        ]
     };
+    var references = {};
     var targetTypes = {
         text: true, search: true, url: true, email: true, tel: true, password: true,
         range: true, number: true,
@@ -43,8 +46,9 @@
         }
     };
 
-    var urlParser = document.createElement("a");
-    var patternCache = {};
+    JSFC._supported = function(type, attribute) {
+        return !!supportedAttributes[attribute][type];
+    };
 
     Object.defineProperty(JSFC, "targetTypes", {
         set: function(types) {
@@ -60,8 +64,11 @@
         }
     });
 
+
+    // refs
+
     JSFC.registerSchema = function(schemaId, schema) {
-        this._references[schemaId] = schema;
+        references[schemaId] = schema;
     };
 
     JSFC.loadSchema = function(schemaId, cb) {
@@ -85,6 +92,40 @@
         xhr.send();
     };
 
+    JSFC._resolveReference = function(context, ref) {
+        var schema;
+        if ( ref.indexOf("http") === 0 ) {
+            urlParser.href = ref;
+            var schemaId = urlParser.protocol + "//" + urlParser.host + urlParser.pathname + urlParser.search;
+
+            schema = references[schemaId];
+            context.currentSchema = schema;
+            if ( urlParser.hash.length > 0 ) {
+                schema = JSFC._resolvePointer(schema, urlParser.hash.substr(1));
+            }
+        }
+        else {
+            schema = JSFC._resolvePointer(context.currentSchema, ref.substr(1));
+        }
+
+        if ( ! schema ) {
+            throw new Error("Cannot resolve reference: " + ref);
+        }
+
+        return schema;
+    };
+
+    JSFC._resolvePointer = function(current, pointer) {
+        var p = pointer.split("/");
+        for ( var i = 1, j = p.length; i < j; i++ ) {
+            if ( ! current[p[i]] ) return null;
+            current = current[p[i]];
+        }
+        return current;
+    };
+
+    // core
+
     JSFC.apply = function(schema, form) {
         var inputElements = this._retrieveInputElements(form);
         var context = {
@@ -93,7 +134,7 @@
             currentSchema: schema
         };
 
-        JSFC.targetKeywords.forEach(function(targetKeyword) {
+        JSFC.targetKeywords.concat(["properties"]).forEach(function(targetKeyword) {
             if ( keywords[context.environment][targetKeyword] ) {
                 context.keywords[targetKeyword] = keywords[context.environment][targetKeyword];
             }
@@ -136,54 +177,12 @@
         return inputElements;
     };
 
-    JSFC._supported = function(type, attribute) {
-        return !!supportedAttributes[attribute][type];
-    };
-
-    JSFC._resolveReference = function(context, ref) {
-        var schema;
-        if ( ref.indexOf("http") === 0 ) {
-            urlParser.href = ref;
-            var schemaId = urlParser.protocol + "//" + urlParser.host + urlParser.pathname + urlParser.search;
-
-            schema = JSFC._references[schemaId];
-            context.currentSchema = schema;
-            if ( urlParser.hash.length > 0 ) {
-                schema = JSFC._resolvePointer(schema, urlParser.hash.substr(1));
-            }
-        }
-        else {
-            schema = JSFC._resolvePointer(context.currentSchema, ref.substr(1));
-        }
-
-        if ( ! schema ) {
-            throw new Error("Cannot resolve reference: " + ref);
-        }
-
-        return schema;
-    };
-
-    JSFC._resolvePointer = function(current, pointer) {
-        var p = pointer.split("/");
-        for ( var i = 1, j = p.length; i < j; i++ ) {
-            if ( ! current[p[i]] ) return null;
-            current = current[p[i]];
-        }
-        return current;
-    };
-
 
     // keywords
 
     var keywords = {
         draft4: {}
     };
-
-    //keywords.draft4.ref = function(context, schema, instance) {
-        //var ref = schema["$ref"];
-        //var resolvedSchema = JSFC._resolveReference(context, ref);
-        //JSFC.apply(instance, resolvedSchema);
-    //};
 
     keywords.draft4.properties = function(context, schema, instance) {
         // additionalProperties, maxProperties and minProperties are not supported
