@@ -2,17 +2,17 @@ JSFC
 ===
 
 ### JSFC (JSON Schema Form Constraints) is ...
-a JavaScript library that converts JSON Schema to HTML5 Form constraints.
+a JavaScript library that converts [JSON Schema](http://json-schema.org/) to [HTML5 form constraints](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/Constraint_validation).
 
-Note: This library does not validate form values. It just applies JSON Schema to input/select/textarea elements in your form. Validataion itself will be done by Browser native support or polyfill library like [H5F](https://github.com/ryanseddon/H5F).
+Note: This library does not do validation. It just applies JSON Schema to input/select/textarea elements on your form. Validataion itself could be done by browser's native support or polyfill library like [H5F](https://github.com/ryanseddon/H5F).
 
 
-### Supported JSON Schema drafts
+## Supported JSON Schema drafts
 
 - [draft4](http://tools.ietf.org/html/draft-zyp-json-schema-04)
 
 
-### Supported JSON Schema keywords
+## Supported JSON Schema keywords
 
 Not supported keywords are just ignored. (e.g. oneOf, allOf, anyOf, etc...)
 
@@ -45,7 +45,7 @@ Interpret as "placeholder" attribute of input, select and textarea
 Interpret as "placeholder" attribute of input, select and textarea
 
 
-### Usage
+## Usage
 
 #### apply schema to the form element
 
