@@ -7,19 +7,15 @@
             "required", "pattern",
             "max", "min", "maxlength"
         ],
-        references: {},
+        _references: {},
     };
-    var urlParser = document.createElement("a");
-    var config = {
-        targetTypes: {
-            text: true, search: true, url: true, email: true, password: true,
-            range: true, number: true,
-            date: true, month: true, week: true,
-            datetime: true, "datetime-local": true, time: true,
-            select: true, textarea: true
-        }
+    var targetTypes = {
+        text: true, search: true, url: true, email: true, password: true,
+        range: true, number: true,
+        date: true, month: true, week: true,
+        datetime: true, "datetime-local": true, time: true,
+        select: true, textarea: true
     };
-
     var supportedAttributes = {
         pattern: {
             text: true, search: true, url: true, email: true, password: true
@@ -47,23 +43,25 @@
         }
     };
 
+    var urlParser = document.createElement("a");
+    var patternCache = {};
+
     Object.defineProperty(JSFC, "targetTypes", {
-        set: function(targetTypes) {
-            config.targetTypes = {};
-            targetTypes.forEach(function(targetType) {
-                config.targetTypes[targetType] = true;
+        set: function(types) {
+            targetTypes = {};
+            types.forEach(function(targetType) {
+                targetTypes[targetType] = true;
             });
         },
         get: function() {
-            return Object.keys(config.targetTypes).filter(function(k) {
-                return config.targetTypes[k];
+            return Object.keys(targetTypes).filter(function(k) {
+                return targetTypes[k];
             });
         }
     });
 
-    JSFC.references = {};
     JSFC.registerSchema = function(schemaId, schema) {
-        this.references[schemaId] = schema;
+        this._references[schemaId] = schema;
     };
 
     JSFC.loadSchema = function(schemaId, cb) {
@@ -104,7 +102,7 @@
             schema = JSFC._resolveReference(context, schema["$ref"]);
         }
 
-        if ( schema.properties ) {
+        if ( schema.properties || schema.patternProperties ) {
             context.keywords.properties(context, schema, inputElements);
         }
 
@@ -127,7 +125,7 @@
             else if ( elem.tagName === "TEXTAREA" ) {
                 type = "textarea";
             }
-            if ( ! config.targetTypes[type] ) return;
+            if ( ! targetTypes[type] ) return;
 
             inputElements[elem.getAttribute("name")] = {
                 type: type,
@@ -144,14 +142,13 @@
     JSFC._resolveReference = function(context, ref) {
         var schema;
         if ( ref.indexOf("http") === 0 ) {
-            var a = urlParser;
-            a.href = ref;
-            var url = a.protocol + "//" + a.host + a.pathname + a.search;
+            urlParser.href = ref;
+            var schemaId = urlParser.protocol + "//" + urlParser.host + urlParser.pathname + urlParser.search;
 
-            schema = JSFC.references[url];
+            schema = JSFC._references[schemaId];
             context.currentSchema = schema;
-            if ( a.hash ) {
-                schema = JSFC._resolvePointer(schema, a.hash.substr(1));
+            if ( urlParser.hash.length > 0 ) {
+                schema = JSFC._resolvePointer(schema, urlParser.hash.substr(1));
             }
         }
         else {
@@ -188,32 +185,59 @@
     //};
 
     keywords.draft4.properties = function(context, schema, instance) {
+        // additionalProperties, maxProperties and minProperties are not supported
         var properties = schema.properties;
+        var patternProperties = schema.patternProperties;
 
-        Object.keys(properties).forEach(function(key) {
-            if ( instance[key] ) {
-                var propertySchema = properties[key];
-                Object.keys(propertySchema).forEach(function(k) {
-                    var p = context.keywords[k];
-                    if ( p ) p(context, propertySchema, instance[key]);
+        if ( properties ) {
+            Object.keys(properties).forEach(function(key) {
+                if ( instance[key] ) {
+                    var propertySchema = properties[key];
+                    Object.keys(propertySchema).forEach(function(k) {
+                        var p = context.keywords[k];
+                        if ( p ) p(context, propertySchema, instance[key]);
+                    });
+                }
+            });
+        }
+
+        if ( patternProperties ) {
+            Object.keys(patternProperties).forEach(function(pattern) {
+                var regexp = (patternCache[pattern] || (patternCache[pattern] = new RegExp(pattern)));
+                Object.keys(instance).forEach(function(name) {
+                    if ( name.match(regexp) ) {
+                        var propertySchema = patternProperties[pattern];
+                        Object.keys(propertySchema).forEach(function(k) {
+                            var p = context.keywords[k];
+                            if ( p ) p(context, propertySchema, instance[name]);
+                        });
+                    }
                 });
-            }
-        });
+            });
+        }
     };
 
     keywords.draft4.default = function(context, schema, instance) {
         instance.elem.setAttribute("value", schema.default);
     };
 
+    keywords.draft4.title = function(context, schema, instance) {
+        instance.elem.setAttribute("placeholder", schema.title);
+    };
+
+    keywords.draft4.description = function(context, schema, instance) {
+        instance.elem.setAttribute("placeholder", schema.description);
+    };
+
     keywords.draft4.maximum = function(context, schema, instance) {
-        if ( ! JSFC._supported(instance.type, "max") ) return;
         // exclusiveMaximum is not supported
+        if ( ! JSFC._supported(instance.type, "max") ) return;
         instance.elem.setAttribute("max", schema.maximum);
     };
 
     keywords.draft4.minimum = function(context, schema, instance) {
-        if ( ! JSFC._supported(instance.type, "min") ) return;
         // exclusiveMinimum is not supported
+        if ( ! JSFC._supported(instance.type, "min") ) return;
         instance.elem.setAttribute("min", schema.minimum);
     };
 
