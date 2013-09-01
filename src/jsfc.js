@@ -10,35 +10,35 @@
         _references: {},
     };
     var targetTypes = {
-        text: true, search: true, url: true, email: true, password: true,
+        text: true, search: true, url: true, email: true, tel: true, password: true,
         range: true, number: true,
-        date: true, month: true, week: true,
-        datetime: true, "datetime-local": true, time: true,
+        date: true, month: true, week: true, datetime: true, "datetime-local": true, time: true,
         select: true, textarea: true
     };
     var supportedAttributes = {
         pattern: {
-            text: true, search: true, url: true, email: true, password: true
+            text: true, search: true, url: true, email: true, tel: true, password: true,
         },
         min: {
             range: true, number: true,
-            date: true, month: true, week: true,
-            datetime: true, "datetime-local": true, time: true
+            date: true, month: true, week: true, datetime: true, "datetime-local": true, time: true
         },
         max: {
             range: true, number: true,
-            date: true, month: true, week: true,
-            datetime: true, "datetime-local": true, time: true
+            date: true, month: true, week: true, datetime: true, "datetime-local": true, time: true
         },
         required: {
-            text: true, search: true, url: true, email: true, password: true,
+            text: true, search: true, url: true, email: true, tel: true, password: true,
             range: true, number: true,
-            date: true, month: true, week: true,
-            datetime: true, "datetime-local": true, time: true,
+            date: true, month: true, week: true, datetime: true, "datetime-local": true, time: true,
             select: true, textarea: true
         },
         maxlength: {
-            text: true, search: true, url: true, email: true, password: true,
+            text: true, search: true, url: true, email: true, tel: true, password: true,
+            textarea: true
+        },
+        placeholder: {
+            text: true, search: true, url: true, email: true, tel: true, password: true,
             textarea: true
         }
     };
@@ -75,9 +75,10 @@
                     schema = JSON.parse(xhr.responseText);
                 }
                 catch (e) {
+                    throw new Error(schemaId + " returns invalid json: (" + xhr.responseText + ")");
                 }
                 JSFC.registerSchema(id, schema);
-                cb(JSFC);
+                cb(schema);
             }
         };
 
@@ -156,7 +157,7 @@
         }
 
         if ( ! schema ) {
-            throw new Error("hoge");
+            throw new Error("Cannot resolve reference: " + ref);
         }
 
         return schema;
@@ -222,10 +223,12 @@
     };
 
     keywords.draft4.title = function(context, schema, instance) {
+        if ( ! JSFC._supported(instance.type, "placeholder") ) return;
         instance.elem.setAttribute("placeholder", schema.title);
     };
 
     keywords.draft4.description = function(context, schema, instance) {
+        if ( ! JSFC._supported(instance.type, "placeholder") ) return;
         instance.elem.setAttribute("placeholder", schema.description);
     };
 

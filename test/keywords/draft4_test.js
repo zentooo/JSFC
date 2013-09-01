@@ -67,7 +67,7 @@ describe("keywords.draft4.required", function() {
 });
 
 describe("keywords.draft4.properties", function() {
-    it("applies constraints", function() {
+    it("applies property constraints", function() {
         /*:DOC foo = <input name="foo" type="text"></input> */
         /*:DOC bar = <input name="bar" type="text"></input> */
         JSFC.keywords.draft4.properties({
@@ -99,5 +99,32 @@ describe("keywords.draft4.properties", function() {
         console.log(this.bar.outerHTML);
         expect(this.foo.getAttribute("pattern")).toEqual("\\d+");
         expect(this.bar.getAttribute("maxlength")).toEqual(10);
+    });
+
+    it("applies patternProperty constraints", function() {
+        /*:DOC foo = <input name="foo" type="text"></input> */
+        /*:DOC bar = <input name="bar" type="text"></input> */
+        JSFC.keywords.draft4.properties({
+            environment: "draft4",
+            keywords: {
+                pattern: JSFC.keywords.draft4.pattern,
+                maxlength: JSFC.keywords.draft4.maxlength
+            }
+        }, {
+            patternProperties: {
+                "foo|bar": {
+                    pattern: "\\d+",
+                    format: "email"
+                }
+            }
+        },
+        {
+            foo: { elem: this.foo, type: "text" },
+            bar: { elem: this.bar, type: "text" },
+        });
+        console.log(this.foo.outerHTML);
+        console.log(this.bar.outerHTML);
+        expect(this.foo.getAttribute("pattern")).toEqual("\\d+");
+        expect(this.bar.getAttribute("pattern")).toEqual("\\d+");
     });
 });
