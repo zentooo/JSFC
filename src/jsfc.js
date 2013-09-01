@@ -8,7 +8,7 @@
         environment: "draft4",
         targetKeywords: [
             "required", "pattern",
-            "max", "min", "maxlength"
+            "max", "min", "maxLength"
         ]
     };
     var references = {};
@@ -243,9 +243,9 @@
         instance.elem.setAttribute("min", schema.minimum);
     };
 
-    keywords.draft4.maxlength = function(context, schema, instance) {
+    keywords.draft4.maxLength = function(context, schema, instance) {
         if ( ! JSFC._supported(instance.type, "maxlength") ) return;
-        instance.elem.setAttribute("maxlength", schema.maxlength);
+        instance.elem.setAttribute("maxlength", schema.maxLength);
     };
 
     keywords.draft4.pattern = function(context, schema, instance) {

@@ -32,7 +32,7 @@ Interpret as "max" attribute of input, select and textarea
 #### minimum
 Interpret as "min" attribute of input, select and textarea
 
-#### maxlength
+#### maxLength
 Interpret as "maxlength" attribute of input, select and textarea
 
 #### default (not enabled as default)

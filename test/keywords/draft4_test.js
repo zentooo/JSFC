@@ -26,15 +26,15 @@ describe("keywords.draft4.minimum", function() {
     });
 });
 
-describe("keywords.draft4.maxlength", function() {
+describe("keywords.draft4.maxLength", function() {
     it("applies 'maxlength' constraint", function() {
         /*:DOC elem = <input type="text"></input> */
-        JSFC.keywords.draft4.maxlength({}, { maxlength: 10 }, { elem: this.elem, type: "text" });
+        JSFC.keywords.draft4.maxLength({}, { maxLength: 10 }, { elem: this.elem, type: "text" });
         expect(this.elem.getAttribute("maxlength")).toEqual(10);
     });
     it("does not apply 'maxlength' constraint to not-supported-typed element", function() {
         /*:DOC elem = <input type="range"></input> */
-        JSFC.keywords.draft4.maxlength({}, { maxlength: 10 }, { elem: this.elem, type: "range" });
+        JSFC.keywords.draft4.maxLength({}, { maxLength: 10 }, { elem: this.elem, type: "range" });
         expect(this.elem.getAttribute("maxlength")).toEqual(null);
     });
 });
@@ -74,7 +74,7 @@ describe("keywords.draft4.properties", function() {
             environment: "draft4",
             keywords: {
                 pattern: JSFC.keywords.draft4.pattern,
-                maxlength: JSFC.keywords.draft4.maxlength
+                maxLength: JSFC.keywords.draft4.maxLength
             }
         }, {
             properties: {
@@ -83,7 +83,7 @@ describe("keywords.draft4.properties", function() {
                     format: "email"
                 },
                 bar: {
-                    maxlength: 10,
+                    maxLength: 10,
                     oneOf: {}
                 },
                 baz: {
