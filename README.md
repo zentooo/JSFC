@@ -1,7 +1,7 @@
 JSFC
 ===
 
-### JSCF (JSON Schema Form Constraints) is ...
+### JSFC (JSON Schema Form Constraints) is ...
 a JavaScript library that converts JSON Schema to HTML5 Form constraints.
 
 Note: This library does not validate form values. It just applies JSON Schema to input/select/textarea elements in your form. Validataion itself will be done by Browser native support or polyfill library like [H5F](https://github.com/ryanseddon/H5F).
@@ -89,7 +89,7 @@ var schema = {
 JSFC.apply(schema, form);
 ```
 
-then, result HTML would be...
+then, result HTML would be:
 
 ```
 <form id="funny-form" action="http://example.com" method="GET">
