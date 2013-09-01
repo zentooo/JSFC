@@ -70,7 +70,13 @@ describe("keywords.draft4.properties", function() {
     it("applies constraints", function() {
         /*:DOC foo = <input name="foo" type="text"></input> */
         /*:DOC bar = <input name="bar" type="text"></input> */
-        JSFC.keywords.draft4.properties({ environment: "draft4" }, {
+        JSFC.keywords.draft4.properties({
+            environment: "draft4",
+            keywords: {
+                pattern: JSFC.keywords.draft4.pattern,
+                maxlength: JSFC.keywords.draft4.maxlength
+            }
+        }, {
             properties: {
                 foo: {
                     pattern: "\\d+",

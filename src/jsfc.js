@@ -3,6 +3,10 @@
 
     var JSFC = {
         environment: "draft4",
+        targetKeywords: [
+            "required", "pattern",
+            "max", "min", "maxlength"
+        ],
         references: {},
     };
     var urlParser = document.createElement("a");
@@ -58,13 +62,14 @@
     });
 
     JSFC.references = {};
-    JSFC.registerSchema = function(id, schema) {
-        this.references[id] = schema;
+    JSFC.registerSchema = function(schemaId, schema) {
+        this.references[schemaId] = schema;
     };
 
-    JSFC.loadSchema = function(id, cb) {
+    JSFC.loadSchema = function(schemaId, cb) {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", id, true);
+        xhr.open("GET", schemaId, true);
+
         xhr.onload = function() {
             if ( xhr.status === 200 ) {
                 var schema;
@@ -77,25 +82,34 @@
                 cb(JSFC);
             }
         };
+
+        xhr.send();
     };
 
     JSFC.apply = function(schema, form) {
         var inputElements = this._retrieveInputElements(form);
         var context = {
             environment: JSFC.environment,
+            keywords: {},
             currentSchema: schema
         };
+
+        JSFC.targetKeywords.forEach(function(targetKeyword) {
+            if ( keywords[context.environment][targetKeyword] ) {
+                context.keywords[targetKeyword] = keywords[context.environment][targetKeyword];
+            }
+        });
 
         while ( schema["$ref"] ) {
             schema = JSFC._resolveReference(context, schema["$ref"]);
         }
 
         if ( schema.properties ) {
-            keywords[context.environment].properties(context, schema, inputElements);
+            context.keywords.properties(context, schema, inputElements);
         }
 
-        if ( schema.required ) {
-            keywords[context.environment].required(context, schema, inputElements);
+        if ( schema.required && context.keywords["required"] ) {
+            context.keywords.required(context, schema, inputElements);
         }
     };
 
@@ -180,7 +194,7 @@
             if ( instance[key] ) {
                 var propertySchema = properties[key];
                 Object.keys(propertySchema).forEach(function(k) {
-                    var p = keywords[context.environment][k];
+                    var p = context.keywords[k];
                     if ( p ) p(context, propertySchema, instance[key]);
                 });
             }
