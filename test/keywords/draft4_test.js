@@ -42,12 +42,12 @@ describe("keywords.draft4.maxlength", function() {
 describe("keywords.draft4.pattern", function() {
     it("applies 'pattern' constraint", function() {
         /*:DOC elem = <input type="text"></input> */
-        JSFC.keywords.draft4.pattern({}, { pattern: "^\d{1,10}$" }, { elem: this.elem, type: "text" });
-        expect(this.elem.getAttribute("pattern")).toEqual("^\d{1,10}$");
+        JSFC.keywords.draft4.pattern({}, { pattern: "^\\d{1,10}$" }, { elem: this.elem, type: "text" });
+        expect(this.elem.getAttribute("pattern")).toEqual("^\\d{1,10}$");
     });
     it("does not apply 'pattern' constraint to not-supported-typed element", function() {
         /*:DOC elem = <input type="range"></input> */
-        JSFC.keywords.draft4.pattern({}, { pattern: "^\d{1,10}$" }, { elem: this.elem, type: "range" });
+        JSFC.keywords.draft4.pattern({}, { pattern: "^\\d{1,10}$" }, { elem: this.elem, type: "range" });
         expect(this.elem.getAttribute("pattern")).toEqual(null);
     });
 });
@@ -63,5 +63,35 @@ describe("keywords.draft4.required", function() {
         console.log(this.foo.outerHTML);
         expect(this.foo.required).toBe(true);
         expect(this.bar.required).toBe(false);
+    });
+});
+
+describe("keywords.draft4.properties", function() {
+    it("applies constraints", function() {
+        /*:DOC foo = <input name="foo" type="text"></input> */
+        /*:DOC bar = <input name="bar" type="text"></input> */
+        JSFC.keywords.draft4.properties({ environment: "draft4" }, {
+            properties: {
+                foo: {
+                    pattern: "\\d+",
+                    format: "email"
+                },
+                bar: {
+                    maxlength: 10,
+                    oneOf: {}
+                },
+                baz: {
+                    maxlength: 10
+                }
+            }
+        },
+        {
+            foo: { elem: this.foo, type: "text" },
+            bar: { elem: this.bar, type: "text" },
+        });
+        console.log(this.foo.outerHTML);
+        console.log(this.bar.outerHTML);
+        expect(this.foo.getAttribute("pattern")).toEqual("\\d+");
+        expect(this.bar.getAttribute("maxlength")).toEqual(10);
     });
 });

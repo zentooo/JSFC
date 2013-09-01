@@ -83,7 +83,20 @@
         var inputElements = this._retrieveInputElements(form);
         var context = {
             environment: JSFC.environment,
+            currentSchema: schema
         };
+
+        while ( schema["$ref"] ) {
+            schema = JSFC._resolveReference(context, schema["$ref"]);
+        }
+
+        if ( schema.properties ) {
+            keywords[context.environment].properties(context, schema, inputElements);
+        }
+
+        if ( schema.required ) {
+            keywords[context.environment].required(context, schema, inputElements);
+        }
     };
 
     JSFC._retrieveInputElements = function(form) {
@@ -124,12 +137,17 @@
             schema = JSFC.references[url];
             context.currentSchema = schema;
             if ( a.hash ) {
-                schema = JSFC._resolvePointer(schema, a.hash);
+                schema = JSFC._resolvePointer(schema, a.hash.substr(1));
             }
         }
         else {
             schema = JSFC._resolvePointer(context.currentSchema, ref.substr(1));
         }
+
+        if ( ! schema ) {
+            throw new Error("hoge");
+        }
+
         return schema;
     };
 
@@ -149,15 +167,14 @@
         draft4: {}
     };
 
-    keywords.draft4.ref = function(context, schema, instance) {
-        var ref = schema["$ref"];
-        var resolvedSchema = JSFC._resolveReference(context, ref);
-        JSFC.apply(instance, resolvedSchema);
-    };
+    //keywords.draft4.ref = function(context, schema, instance) {
+        //var ref = schema["$ref"];
+        //var resolvedSchema = JSFC._resolveReference(context, ref);
+        //JSFC.apply(instance, resolvedSchema);
+    //};
 
     keywords.draft4.properties = function(context, schema, instance) {
         var properties = schema.properties;
-        if ( ! properties ) return;
 
         Object.keys(properties).forEach(function(key) {
             if ( instance[key] ) {

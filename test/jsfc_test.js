@@ -54,3 +54,58 @@ describe("JSFC._resolvePointer", function() {
         expect(p).toEqual(null);
     });
 });
+
+describe("JSFC._resolveReference", function() {
+    it("resolves reference which starts with hash", function() {
+        var schema = JSFC._resolveReference({
+            currentSchema: {
+                definitions: {
+                    LoginRequestPayload: {
+                        properties: {
+                            id: {},
+                            password: {},
+                        }
+                    }
+                }
+            },
+        }, "#/definitions/LoginRequestPayload");
+        expect(schema).toEqual({ properties: { id: {}, password: {} } });
+    });
+
+    it("resolves reference which is URL (absolute ref)", function() {
+        JSFC.registerSchema("http://example.schema.org/schema.json", {
+            definitions: {
+                LoginRequestPayload: {
+                    properties: {
+                        id: {},
+                        password: {},
+                    }
+                }
+            }
+        });
+        var schema = JSFC._resolveReference({}, "http://example.schema.org/schema.json#/definitions/LoginRequestPayload");
+        expect(schema).toEqual({ properties: { id: {}, password: {} } });
+    });
+
+    it("resolves reference which is URL (relative ref)", function() {
+        JSFC.registerSchema("http://example.schema.org/schema.json", {
+            definitions: {
+                LoginRequestPayload: {
+                    properties: {
+                        id: {},
+                        password: {},
+                    }
+                }
+            },
+            links: [
+                {
+                    schema: { "$ref": "#/definitions/LoginRequestPayload" }
+                }
+            ]
+        });
+        var context = {};
+        var link = JSFC._resolveReference(context, "http://example.schema.org/schema.json#/links/0/schema");
+        var schema = JSFC._resolveReference(context, link["$ref"]);
+        expect(schema).toEqual({ properties: { id: {}, password: {} } });
+    });
+});
