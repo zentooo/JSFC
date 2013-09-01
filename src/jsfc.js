@@ -2,16 +2,20 @@
     "use strict";
 
     var JSFC = {
-        environment: "draft4"
+        environment: "draft4",
+        references: {},
     };
+    var urlParser = document.createElement("a");
     var config = {
         targetTypes: {
-            "text": true,
-            "range": true,
-            "textarea": true,
-            "select": true,
+            text: true, search: true, url: true, email: true, password: true,
+            range: true, number: true,
+            date: true, month: true, week: true,
+            datetime: true, "datetime-local": true, time: true,
+            select: true, textarea: true
         }
     };
+
     var supportedAttributes = {
         pattern: {
             text: true, search: true, url: true, email: true, password: true
@@ -41,6 +45,7 @@
 
     Object.defineProperty(JSFC, "targetTypes", {
         set: function(targetTypes) {
+            config.targetTypes = {};
             targetTypes.forEach(function(targetType) {
                 config.targetTypes[targetType] = true;
             });
@@ -99,24 +104,25 @@
 
             inputElements[elem.getAttribute("name")] = {
                 type: type,
-                element: elem
+                elem: elem
             };
         });
         return inputElements;
     };
 
     JSFC._supported = function(type, attribute) {
-        return supportedAttributes[attribute][type];
+        return !!supportedAttributes[attribute][type];
     };
 
     JSFC._resolveReference = function(context, ref) {
         var schema;
         if ( ref.indexOf("http") === 0 ) {
-            var a = document.createElement("a");
+            var a = urlParser;
             a.href = ref;
             var url = a.protocol + "//" + a.host + a.pathname + a.search;
 
             schema = JSFC.references[url];
+            context.currentSchema = schema;
             if ( a.hash ) {
                 schema = JSFC._resolvePointer(schema, a.hash);
             }
@@ -127,12 +133,12 @@
         return schema;
     };
 
-    JSFC._resolvePointer = function(json, pointer) {
-        var current = json;
-        pointer.split("/").forEach(function(p) {
-            if ( ! json[p] ) return null;
-            current = json[p];
-        });
+    JSFC._resolvePointer = function(current, pointer) {
+        var p = pointer.split("/");
+        for ( var i = 1, j = p.length; i < j; i++ ) {
+            if ( ! current[p[i]] ) return null;
+            current = current[p[i]];
+        }
         return current;
     };
 
@@ -193,11 +199,16 @@
     keywords.draft4.required = function(context, schema, instance) {
         schema.required.forEach(function(name) {
             if ( ! JSFC._supported(instance[name].type, "required") ) return;
-            instance[name].elem.setAttribute("required", true);
+            instance[name].elem.required = true;
         });
     };
 
-    JSFC.keywords = keywords;
+    Object.defineProperty(JSFC, "keywords", {
+        value: keywords,
+        writable: false,
+        enumerable: false,
+        configurable: false
+    });
 
-    global.JSFC = JFFC;
+    global.JSFC = JSFC;
 })(this.self || global);

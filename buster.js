@@ -7,7 +7,8 @@ config["JSFC tests"] = {
         "src/jsfc.js",
     ],
     tests: [
-        "test/*_test.js"
+        "test/*_test.js",
+        "test/keywords/*_test.js"
     ],
     extensions: [require("buster-html-doc")]
 };
