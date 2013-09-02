@@ -101,10 +101,13 @@ describe("keywords.draft4.properties", function() {
         expect(this.bar.getAttribute("maxlength")).toEqual(10);
     });
 
+});
+
+describe("keywords.draft4.patternProperties", function() {
     it("applies patternProperty constraints", function() {
         /*:DOC foo = <input name="foo" type="text"></input> */
         /*:DOC bar = <input name="bar" type="text"></input> */
-        JSFC.keywords.draft4.properties({
+        JSFC.keywords.draft4.patternProperties({
             environment: "draft4",
             keywords: {
                 pattern: JSFC.keywords.draft4.pattern,

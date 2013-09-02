@@ -144,8 +144,11 @@
             schema = JSFC._resolveReference(context, schema["$ref"]);
         }
 
-        if ( schema.properties || schema.patternProperties ) {
+        if ( schema.properties ) {
             context.keywords.properties(context, schema, inputElements);
+        }
+        if ( schema.patternProperties ) {
+            context.keywords.patternProperties(context, schema, inputElements);
         }
 
         if ( schema.required && context.keywords["required"] ) {
@@ -184,37 +187,40 @@
         draft4: {}
     };
 
+    keywords._applyPropertySchema = function(context, schema, instance) {
+        while ( schema["$ref"] ) {
+            schema = JSFC._resolveReference(context, schema["$ref"]);
+        }
+        Object.keys(schema).forEach(function(k) {
+            var p = context.keywords[k];
+            if ( p ) p(context, schema, instance);
+        });
+    };
+
     keywords.draft4.properties = function(context, schema, instance) {
         // additionalProperties, maxProperties and minProperties are not supported
         var properties = schema.properties;
+
+        Object.keys(properties).forEach(function(key) {
+            if ( instance[key] ) {
+                var propertySchema = properties[key];
+                keywords._applyPropertySchema(context, propertySchema, instance[key]);
+            }
+        });
+    };
+
+    keywords.draft4.patternProperties = function(context, schema, instance) {
         var patternProperties = schema.patternProperties;
 
-        if ( properties ) {
-            Object.keys(properties).forEach(function(key) {
-                if ( instance[key] ) {
-                    var propertySchema = properties[key];
-                    Object.keys(propertySchema).forEach(function(k) {
-                        var p = context.keywords[k];
-                        if ( p ) p(context, propertySchema, instance[key]);
-                    });
+        Object.keys(patternProperties).forEach(function(pattern) {
+            var regexp = (patternCache[pattern] || (patternCache[pattern] = new RegExp(pattern)));
+            Object.keys(instance).forEach(function(name) {
+                if ( name.match(regexp) ) {
+                    var propertySchema = patternProperties[pattern];
+                    keywords._applyPropertySchema(context, propertySchema, instance[name]);
                 }
             });
-        }
-
-        if ( patternProperties ) {
-            Object.keys(patternProperties).forEach(function(pattern) {
-                var regexp = (patternCache[pattern] || (patternCache[pattern] = new RegExp(pattern)));
-                Object.keys(instance).forEach(function(name) {
-                    if ( name.match(regexp) ) {
-                        var propertySchema = patternProperties[pattern];
-                        Object.keys(propertySchema).forEach(function(k) {
-                            var p = context.keywords[k];
-                            if ( p ) p(context, propertySchema, instance[name]);
-                        });
-                    }
-                });
-            });
-        }
+        });
     };
 
     keywords.draft4.default = function(context, schema, instance) {
