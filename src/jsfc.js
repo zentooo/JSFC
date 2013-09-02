@@ -58,9 +58,7 @@
             });
         },
         get: function() {
-            return Object.keys(targetTypes).filter(function(k) {
-                return targetTypes[k];
-            });
+            return Object.keys(targetTypes);
         }
     });
 
