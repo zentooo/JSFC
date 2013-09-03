@@ -82,7 +82,7 @@
                 catch (e) {
                     throw new Error(schemaId + " returns invalid json: (" + xhr.responseText + ")");
                 }
-                JSFC.registerSchema(id, schema);
+                JSFC.registerSchema(schemaId, schema);
                 cb(schema);
             }
         };
