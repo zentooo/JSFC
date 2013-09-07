@@ -8,7 +8,7 @@
         environment: "draft4",
         targetKeywords: [
             "required", "pattern",
-            "max", "min", "maxLength"
+            "maximum", "minimum", "maxLength"
         ]
     };
     var references = {};
@@ -71,8 +71,8 @@
 
     JSFC.loadSchema = function(schemaId, cb) {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", schemaId, true);
 
+        xhr.open("GET", schemaId, true);
         xhr.onload = function() {
             if ( xhr.status === 200 ) {
                 var schema;
@@ -124,7 +124,7 @@
 
     // core
 
-    JSFC.apply = function(schema, form) {
+    JSFC.apply = function(form, schema) {
         var inputElements = this._retrieveInputElements(form);
         var context = {
             environment: JSFC.environment,

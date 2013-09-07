@@ -109,3 +109,66 @@ describe("JSFC._resolveReference", function() {
         expect(schema).toEqual({ properties: { id: {}, password: {} } });
     });
 });
+
+//describe("JSFC.loadSchema", function() {
+    //before(function() {
+        //this.server = sinon.fakeServer.create();
+    //});
+
+    //it("loads schema from remote", function() {
+        //this.server.respondWith(
+            //"GET",
+            //"http://example.schema.org/schema.json",
+            //[
+                //200, { "Content-Type": "application/json" }, JSON.stringify('{"id":"sample"}')
+            //]
+        //);
+        //var callback = sinon.spy();
+
+        //JSFC.loadSchema("http://example.schema.org/schema.json", callback);
+        //this.server.respond();
+
+        //sinon.assert.calledOnce(callback);
+        //sinon.assert.calledWith(callback, { "id": "sample" });
+    //});
+//});
+
+describe("JSFC.apply", function() {
+    /*:DOC form = <form>
+        <input name="text" type="text" id="text"/>
+        <input name="range" type="range" id="range" />
+        <select name="select" id="select" />
+        <textarea name="textarea" id="textarea" />
+      </form>
+    */
+    it("apply constraints to form", function() {
+        JSFC.registerSchema("http://example.schema.org/schema.json", {
+            definitions: {
+                LoginRequestPayload: {
+                    properties: {
+                        text: {
+                            maxLength: 10
+                        },
+                        range: {
+                            maximum: 10
+                        },
+                        select: {
+                            maximum: 10
+                        },
+                        textarea: {
+                            pattern: "\\d+"
+                        }
+                    },
+                    required: ["select", "textarea"]
+                }
+            }
+        });
+        JSFC.apply(this.form, { "$ref": "http://example.schema.org/schema.json#/definitions/LoginRequestPayload" });
+        var inputElements = JSFC._retrieveInputElements(this.form);
+        console.log(inputElements["select"].elem.outerHTML);
+        expect(inputElements["text"].elem.getAttribute("maxlength")).toEqual("10");
+        expect(inputElements["range"].elem.getAttribute("max")).toEqual("10");
+        expect(inputElements["select"].elem.required).toBeTrue();
+        expect(inputElements["textarea"].elem.required).toBeTrue();
+    });
+});
